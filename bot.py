@@ -1,60 +1,92 @@
+import asyncio
+
 import discord
 import os
-
+from random import choice
 from dotenv import load_dotenv
 
+from discord.ext import commands
+
 load_dotenv()
-
-client = discord.Client()
 TOKEN = os.getenv('TOKEN')
-GUILD = os.getenv('GUILD')
-print(TOKEN)
-print(GUILD)
+
+bot = commands.Bot(command_prefix='!')  # subclass, Client is superclass
 
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    if message.content.startswith('!hello'):
-        msg = 'Hello {0.author.mention}'.format(message)
-        await message.channel.send(msg)
-    elif message.content.startswith('!pinthis'):
-        perms = discord.Permissions()
-        perms.update(manage_messages=True)
-        await message.pin()
-
-
-# def client.event(func):
-# ....conditions...
-# ... func()
-# .......
-
-# async def on_message(message):
-#   ..stuff..
-# on_message = client.event(on_message)
-
-
-@client.event
+@bot.event
 async def on_ready():
-    # print('Logged in as')
-    #     # print(client.user.name)
-    #     # print(client.user.id)
-    #     # print('----------------')
-    #guild = discord.utils.find(lambda g: g.name == GUILD, client.guilds)
-    guild = discord.utils.get(client.guilds, name=GUILD)
-    print(
-        f'{client.user} is connected to the following :'
-        f'{guild.name} (id : {guild.id})'
-    )
+    print(f'{bot.user.name} has connected to discord')
 
 
-@client.event
-async def on_member_join(member):
-    await member.create_dm()
-    await member.dm_channel.send(
-        f'Hi {member.name}, welcome to discord server!'
-    )
+@bot.command(name="hello", help="gives a random quote")
+async def hello(ctx):
+    random_quotes = [
+        f'Beep bop beep',
+        (
+            'Yap yap yap aypa yap,\n'
+            'Bop bop bop'
+        )
+    ]
+    response = choice(random_quotes)
+    await ctx.send(response)
 
 
-client.run(TOKEN)
+# arguments to a Command function are by default "str"
+# need to use converter.
+@bot.command(name='roll_dice', help='Pretends to rol a dice')
+# async def roll(ctx, num_dice, num_sides):
+async def roll(ctx, num_dice: int, num_sides: int):
+    dice = [str(choice(range(1, num_sides + 1))) for _ in range(num_dice)]
+    await ctx.send(', '.join(dice))
+
+
+@bot.command(name='create-channel', help='make new channel')
+@commands.has_role('admeeeen')
+async def create_channel(ctx, channel_name='real-bot-channel'):
+    guild = ctx.guild
+    print(guild.channels)
+    existing_channel = discord.utils.get(guild.channels, name=channel_name)  # if true, a same name channel exists
+    print(f'Utils.get : {existing_channel}')
+    if not existing_channel:
+        print(f'Creating a new channel: {channel_name}')
+        await guild.create_text_channel(channel_name)
+
+
+@bot.event
+@commands.has_role('admeeeen')
+async def on_message(message):
+    print(message)
+
+    if message.content.startswith('durhurhur'):
+        channel = message.channel
+
+        await channel.send('Thumbs up me pls :3 ')
+
+        def check(reaction, user):
+            return user == message.author and str(reaction.emoji) == '👍'
+
+        try:
+            reaction, user = await bot.wait_for('reaction_add', timeout=60.0, check=check)
+        except asyncio.TimeoutError:
+            await channel.send(':(')
+        else:
+            await channel.send(f'I <3 you too, <@{message.author.id}>')
+
+
+@bot.event
+async def on_command_error(ctx, error):
+    print("Got an error...")
+    print(error)
+    if isinstance(error, commands.errors.CheckFailure):
+        await ctx.send('You do not have the permissions to do this.')
+
+
+
+@bot.event
+async def on_error(event_method, *args, **kwargs):
+    print("Got event error...")
+    print(event_method)
+    print(args)
+    print(kwargs)
+
+bot.run(TOKEN)
