@@ -1,6 +1,6 @@
 
 # Bot-L2D
-## Discord bot written for a certain discord server. In testing stages still
+#### Discord bot written for a certain discord server. In testing stages still
 
 ## Problem(s) that I'm trying to solve:
 + Channels that are for showcases, advertisement are being cluttered with off topic conversations. Users have trouble finding what they want.
