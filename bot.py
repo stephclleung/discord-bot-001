@@ -6,7 +6,7 @@ from random import choice
 from dotenv import load_dotenv
 
 from discord.ext import commands
-
+import sys, traceback
 load_dotenv()
 TOKEN = os.getenv('TOKEN')
 
@@ -32,6 +32,19 @@ url = r'(?i)\b((?:https?:(?:/{1,3}|[a-z0-9%])|[a-z0-9.\-]+[.](' \
       r'|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sg|sh|si|sj|Ja|sk|sl|sm|sn|so|sr|ss|st|su|sv|sx|sy|sz|tc|td' \
       r'|tf|tg|th|tj|tk|tl|tm|tn|to|tp|tr|tt|tv|tw|tz|ua|ug|uk|us|uy|uz|va|vc|ve|vg|vi|vn|vu|wf|ws|ye|yt|yu|za|zm|zw' \
       r')\b/?(?!@))) '
+
+initial_extensions = ['commands.spellitright']
+
+# Here we load our extensions(cogs) listed above in [initial_extensions].
+# if __name__ == '__main__':
+#     for extension in initial_extensions:
+#         try:
+#             bot.load_extension(extension)
+#         except Exception as e:
+#             print(f'Failed to load extension {extension}.', file=sys.stderr)
+#             traceback.print_exc()
+
+bot.load_extension((initial_extensions[0]))
 
 
 @bot.event
@@ -78,27 +91,6 @@ async def clean_up(ctx):
                 count += 1
                 await m.delete()
         await channel.send(f'📢 Helpful robot removed {count} post(s). I am so helpful')
-
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-
-    if '2dlive' in message.content.lower() or re.search(r'\b2d live\b', message.content.lower()):
-        channel = message.channel
-        random_filler = [
-            f'It is a wonderful day, dear <@{message.author.id}>, but perhaps you meant ***Live2D***.',
-            f'Welcome to the Live2D hell,  <@{message.author.id}>, ***Live2D***',
-            f'🐶 A puppy gets sad every time someone says `2dlive`. \n'
-            f' A puppy gets an extra treat every time someone says ***Live2D*** 🐶',
-            f'Beep-bop-beep-bop, robot detected 2dLive, wants to tell <@{message.author.id}> that it is ***Live2D***.s'
-        ]
-
-        choice_of_tease = choice(random_filler)
-        await channel.send(choice_of_tease)
-
-    await bot.process_commands(message)
 
 
 @bot.event
